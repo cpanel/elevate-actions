@@ -37,7 +37,15 @@ jobs:
             TF_VAR_os_password: ${{ secrets.OS_PASSWORD }}
         steps:
             - name: Run Terraform
-              run: ( cd terraform && terraform init && terraform plan && terraform apply -auto-approve && terraform destroy -auto-approve )
+              uses: addnab/docker-run-action@v3
+              with:
+                image: github-terraform-docker:latest
+                run: |
+                  cd terraform
+                  terraform init
+                  terraform plan
+                  terraform apply -auto-approve
+                  terraform destroy -auto-approve
 
 #    destroy_terraform:
 #        runs-on: self-hosted
