@@ -63,13 +63,13 @@ jobs:
 
         - name: Terraform Output File Create
           run: |
-            terraform output -json > ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-tf.out.json
+            terraform output -json > ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-tf.out.json
 
         - name: Get VM IP from Terraform Output File
           id: get_vm_ip
           run: |
-            echo "VM_IP=$(jq -r '.address.value' ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-tf.out.json)" >> "$GITHUB_OUTPUT"
-            echo "$(jq -r '.address.value' ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-tf.out.json)" > vm_ip
+            echo "VM_IP=$(jq -r '.address.value' ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-tf.out.json)" >> "$GITHUB_OUTPUT"
+            echo "$(jq -r '.address.value' ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-tf.out.json)" > vm_ip
 
         - name: Export VM_IP to Env
           env:
@@ -79,15 +79,15 @@ jobs:
         - name: Upload JSON Output
           uses: actions/upload-artifact@v4
           with:
-            name: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-tf.out.json
-            path: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-tf.out.json
+            name: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-tf.out.json
+            path: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-tf.out.json
             overwrite: true
 
         - name: Upload VM Output
           uses: actions/upload-artifact@v4
           with:
-            name: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-vm_ip
-            path: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-vm_ip
+            name: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-vm_ip
+            path: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-vm_ip
             overwrite: true
 
     clone_elevate_repo:
@@ -153,8 +153,8 @@ jobs:
         - name: Download VM IP
           uses: actions/download-artifact@v4
           with:
-            name: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-vm_ip
-            path: ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-vm_ip
+            name: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-vm_ip
+            path: ${{ github.workspace }}-${{ vars.GITHUB_RUN_ID }}-vm_ip
         - name: ARTIFACT_IP to ENV
           run: echo "ARTIFACT_IP=$(cat ${{ github.workspace }}/${{ vars.GITHUB_RUN_ID }}-vm_ip) >> "$GITHUB_OUTPUT"
         - name: Starting Elevate
