@@ -69,7 +69,7 @@ jobs:
           id: get_vm_ip
           run: |
             echo "VM_IP=$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" >> "$GITHUB_OUTPUT"
-            echo "$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" > vm_ip
+            echo "$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" > ${{ github.run_id }}-vm_ip
 
         - name: Export VM_IP to Env
           env:
