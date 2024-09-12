@@ -109,7 +109,7 @@ jobs:
           if: github.event_name != 'pull_request'
           uses: appleboy/ssh-action@v1.0.3
           with:
-            host: ${{ needs.clone_elevate_repo.outputs.ARTIFACT_IP }}
+            host: ${{ steps.artifact_ip.outputs.ARTIFACT_IP }}
             username: 'root'
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             port: '22'
