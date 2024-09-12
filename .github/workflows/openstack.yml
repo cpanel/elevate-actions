@@ -102,7 +102,7 @@ jobs:
             name: ${{ github.run_id }}-vm_ip
             path: ${{ github.workspace }}/
         - name: ARTIFACT_IP to ENV
-          run: echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip) >> "$GITHUB_OUTPUT"
+          run: echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip)" >> "$GITHUB_OUTPUT"
         - name: Checkout Repo and Commit
           if: github.event_name != 'pull_request'
           uses: appleboy/ssh-action@v1.0.3
