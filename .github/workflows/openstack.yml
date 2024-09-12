@@ -63,13 +63,13 @@ jobs:
 
         - name: Terraform Output File Create
           run: |
-            terraform output -json > ${{ github.run_id }}-tf.out.json
+            terraform output -json > ${{ github.workspace }}/${{ github.run_id }}-tf.out.json
 
         - name: Get VM IP from Terraform Output File
           id: get_vm_ip
           run: |
             echo "VM_IP=$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" >> "$GITHUB_OUTPUT"
-            echo "$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" > ${{ github.run_id }}-vm_ip
+            echo "$(jq -r '.address.value' ${{ github.run_id }}-tf.out.json)" > ${{ github.workspace }}/${{ github.run_id }}-vm_ip
 
         - name: Export VM_IP to Env
           env:
@@ -80,14 +80,14 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: ${{ github.run_id }}-tf.out.json
-            path: ${{ github.run_id }}-tf.out.json
+            path: ${{ github.workspace }}/
             overwrite: true
 
         - name: Upload VM Output
           uses: actions/upload-artifact@v4
           with:
             name: ${{ github.run_id }}-vm_ip
-            path: ${{ github.run_id }}-vm_ip
+            path: ${{ github.workspace }}/
             overwrite: true
 
     clone_elevate_repo:
@@ -100,7 +100,7 @@ jobs:
           uses: actions/download-artifact@v4
           with:
             name: ${{ github.run_id }}-vm_ip
-            path: ${{ github.run_id }}-vm_ip
+            path: ${{ github.workspace }}/
         - name: ARTIFACT_IP to ENV
           run: echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip) >> "$GITHUB_OUTPUT"
         - name: Checkout Repo and Commit
