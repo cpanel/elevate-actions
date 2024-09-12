@@ -95,6 +95,7 @@ jobs:
       needs: terraform_openstack_create
       outputs:
         VM_IP: ${{ needs.terraform_openstack_create.outputs.VM_IP }}
+        ARTIFACT_IP: ${{ steps.artifact_ip.outputs.ARTIFACT_IP }}
       steps:
         - name: Download VM IP
           uses: actions/download-artifact@v4
@@ -102,12 +103,13 @@ jobs:
             name: ${{ github.run_id }}-vm_ip
             path: ${{ github.workspace }}/
         - name: ARTIFACT_IP to ENV
+          id: artifact_ip
           run: echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip)" >> "$GITHUB_OUTPUT"
         - name: Checkout Repo and Commit
           if: github.event_name != 'pull_request'
           uses: appleboy/ssh-action@v1.0.3
           with:
-            host: ${{ env.ARTIFACT_IP }}
+            host: ${{ needs.clone_elevate_repo.outputs.ARTIFACT_IP }}
             username: 'root'
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             port: '22'
