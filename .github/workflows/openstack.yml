@@ -111,7 +111,8 @@ jobs:
           id: artifact_ip
           run: |
             echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip)" >> "$GITHUB_OUTPUT"
-            find ./
+            cat ${{ github.run_id }}-vm_ip > artifact_ip
+            ls -la
 
         - name: Export ARTIFACT_IP to env
           env:
