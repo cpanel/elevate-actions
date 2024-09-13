@@ -117,7 +117,7 @@ jobs:
         - name: Export ARTIFACT_IP to env
           env:
             ARTIFACT_IP: ${{ steps.artifact_ip.outputs.ARTIFACT_IP }}
-          run: echo "### [INFO]: ARTIFACT_IP = $ARTIFACT_IP"
+          run: echo "ARTIFACT_IP is ${{ env.ARTIFACT_IP }}"
 
         - name: Checkout Repo and Commit
           if: github.event_name != 'pull_request'
