@@ -8,6 +8,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   TF_VAR_application_credential_id: ${{ secrets.OS_APPLICATION_CREDENTIAL_ID }}
   TF_VAR_application_credential_secret: ${{ secrets.OS_APPLICATION_CREDENTIAL_SECRET }}
@@ -159,10 +163,8 @@ jobs:
               chmod -v +x /scripts/elevate-cpanel
               /usr/local/cpanel/cpkeyclt
               /scripts/elevate-cpanel --non-interactive --start &
-              /scripts/elevate-cpanel --log &
-              /scripts/elevate-cpanel --log | awk '/Rebooting into stage 2 of 5/ { print | "exit" }'
 
-    wait_for_stage_2_reboot:
+    wait_for_stage_1_reboot:
       runs-on: self-hosted
       needs: start_elevate
       outputs:
@@ -172,6 +174,38 @@ jobs:
           working-directory: "./.github/workflows/openstack/"
           run: |
             ./ssh_retry ${{ needs.start_elevate.outputs.VM_IP }}
+
+    watch_for_stage_2_reboot:
+      runs-on: self-hosted
+      needs: wait_for_stage_1_reboot
+      outputs:
+        VM_IP: ${{ needs.wait_for_stage_1_reboot.outputs.VM_IP }}
+      steps:
+        - name: Monitor Elevate for Reboot from Stage 1 into Stage 2
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ needs.wait_for_stage_1_reboot.outputs.VM_IP }}
+            username: 'root'
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            port: '22'
+            timeout: 60m
+            command_timeout: 30m
+            debug: true
+            script: |
+              /scripts/status_marker 1
+              /scripts/elevate-cpanel --log &
+              REGEX="/usr/bin/systemctl start elevate-cpanel.service" RETVAL=1 /scripts/reboot_watch
+
+    wait_for_stage_2_reboot:
+      runs-on: self-hosted
+      needs: watch_for_stage_2_reboot
+      outputs:
+        VM_IP: ${{ needs.watch_for_stage_2_reboot.outputs.VM_IP }}
+      steps:
+        - name: Wait For VM to Come Back From Stage 2 Reboot
+          working-directory: "./.github/workflows/openstack/"
+          run: |
+            ./ssh_retry ${{ needs.watch_for_stage_2_reboot.outputs.VM_IP }}
 
     watch_for_stage_3_reboot:
       runs-on: self-hosted
@@ -267,46 +301,16 @@ jobs:
           run: |
             ./ssh_retry ${{ needs.watch_for_stage_5_reboot.outputs.VM_IP }}
 
-    watch_for_final_reboot:
+    verify_upgraded_os:
       runs-on: self-hosted
       needs: wait_for_stage_5_reboot
       outputs:
         VM_IP: ${{ needs.wait_for_stage_5_reboot.outputs.VM_IP }}
       steps:
-        - name: Watch Elevate for Final Reboot
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ needs.wait_for_stage_5_reboot.outputs.VM_IP }}
-            username: 'root'
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            port: '22'
-            timeout: 30m
-            command_timeout: 30m
-            script: |
-              /scripts/elevate-cpanel --log &
-              REGEX="Doing final reboot" RETVAL=1 /scripts/reboot_watch
-  
-    wait_for_final_reboot:
-      runs-on: self-hosted
-      needs: watch_for_final_reboot
-      outputs:
-        VM_IP: ${{ needs.watch_for_final_reboot.outputs.VM_IP }}
-      steps:
-        - name: Wait For VM to Come Back From Final Reboot
-          working-directory: "./.github/workflows/openstack/"
-          run: |
-            ./ssh_retry ${{ needs.watch_for_final_reboot.outputs.VM_IP }}
-
-    verify_upgraded_os:
-      runs-on: self-hosted
-      needs: wait_for_final_reboot
-      outputs:
-        VM_IP: ${{ needs.wait_for_final_reboot.outputs.VM_IP }}
-      steps:
         - name: Verify End Result Integration Tests
           uses: appleboy/ssh-action@v1.0.3
           with:
-            host: ${{ needs.wait_for_final_reboot.outputs.VM_IP }}
+            host: ${{ needs.wait_for_stage_5_reboot.outputs.VM_IP }}
             username: 'root'
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             port: '22'
