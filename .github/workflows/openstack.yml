@@ -106,9 +106,18 @@ jobs:
           with:
             name: ${{ github.run_id }}-vm_ip
             path: ${{ github.workspace }}/
-        - name: ARTIFACT_IP to ENV
+
+        - name: Get VM IP from Artifact
           id: artifact_ip
-          run: echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip)" >> "$GITHUB_OUTPUT"
+          run: |
+            echo "ARTIFACT_IP=$(cat ${{ github.run_id }}-vm_ip)" >> "$GITHUB_OUTPUT"
+            find ./
+
+        - name: Export ARTIFACT_IP to env
+          env:
+            ARTIFACT_IP: ${{ steps.artifact_ip.outputs.ARTIFACT_IP }}
+          run: echo "### [INFO]: ARTIFACT_IP = $ARTIFACT_IP"
+
         - name: Checkout Repo and Commit
           if: github.event_name != 'pull_request'
           uses: appleboy/ssh-action@v1.0.3
@@ -124,7 +133,8 @@ jobs:
               git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git
               cd /opt/elevate
               git status
-        - name: Checking out Repo and Commit
+
+        - name: Checking out Repo and Pull Request
           if: github.event_name == 'pull_request'
           uses: appleboy/ssh-action@v1.0.3
           with:
@@ -186,11 +196,6 @@ jobs:
               chmod -v +x /scripts/elevate-cpanel
               /usr/local/cpanel/cpkeyclt
               /scripts/elevate-cpanel --non-interactive --start &
-<<<<<<< HEAD
-              /scripts/elevate-cpanel --log &
-              REGEX="Rebooting into stage 2 of 5" RETVAL=1 /scripts/reboot_watch
-=======
->>>>>>> upstream/RE-750
 
     wait_for_stage_1_reboot:
       runs-on: self-hosted
