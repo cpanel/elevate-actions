@@ -112,38 +112,34 @@ jobs:
 
         - name: Checkout Repo and Commit
           if: github.event_name != 'pull_request'
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ steps.VM_IP.outputs.VM_IP }}
-            username: 'root'
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            port: '22'
-            script: |
-              cd /opt
-              echo "## [INFO]: ${{ github.ref }}"
-              echo "## [INFO]: ${{ github.ref_name }}"
-              echo "## [INFO}: ${{ github.repository }}"
-              git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git
-              hostname && pwd && ls -la
-              cd /opt/$(echo ${{ github.repository }} | cut -d / -f2)
-              git status
+          env:
+            SSH_CMD: "ssh -p 22 -i ${{ secrets.SSH_PRIVATE_KEY }} root@${{ steps.VM_IP.outputs.VM_IP }} "
+          run: |
+            ${{ env.SSH_CMD }} "cd /opt"
+            ${{ env.SSH_CMD }} "echo "## [INFO]: ${{ github.ref }}""
+            ${{ env.SSH_CMD }} "echo "## [INFO]: ${{ github.ref_name }}""
+            ${{ env.SSH_CMD }} "echo "## [INFO}: ${{ github.repository }}""
+            ${{ env.SSH_CMD }} "git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git"
+            ${{ env.SSH_CMD }} "hostname && pwd && ls -la"
+            ${{ env.SSH_CMD }} "cd /opt/$(echo ${{ github.repository }} | cut -d / -f2)"
+            ${{ env.SSH_CMD }} "git status"
 
         - name: Checking out Repo and Pull Request
           if: github.event_name == 'pull_request'
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ steps.VM_IP.outputs.VM_IP }}
-            username: 'root'
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            port: '22'
-            script: |
-              cd /opt
-              echo "[DEBUG]: ${{ github.ref }}"
-              echo "[DEBUG]: ${{ github.head_ref }}"
-              echo "## [INFO}: ${{ github.repository }}"
-              git clone --depth 1 --branch ${{ github.head_ref }} https://github.com/${{ github.repository }}.git
-              cd /opt/$(echo ${{ github.repository }} | cut -d / -f2)
-              git status
+          env:
+            SSH_CMD: "ssh -p 22 -i ~/tmp_key root@${{ steps.VM_IP.outputs.VM_IP }} "
+          run: |
+            ssh-keyscan -p 22 ${{ steps.VM_IP.outputs.VM_IP }} >> ~/.ssh/known_hosts
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/tmp_key
+            chmod -v 0400 ~/tmp_key
+            ${{ env.SSH_CMD }} "echo "## [INFO]: ${{ github.ref }}""
+            ${{ env.SSH_CMD }} "echo "## [INFO]: ${{ github.ref_name }}""
+            ${{ env.SSH_CMD }} "echo "## [INFO}: ${{ github.repository }}""
+            ${{ env.SSH_CMD }} "cd /opt/ && git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git"
+            ${{ env.SSH_CMD }} "hostname && pwd && ls -la"
+            ${{ env.SSH_CMD }} "cd /opt/$(echo ${{ github.repository }} | cut -d / -f2)"
+            ${{ env.SSH_CMD }} "git status"
+            rm -fv ~/tmp_key
 
     setup_integration_checks:
       runs-on: self-hosted
