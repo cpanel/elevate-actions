@@ -61,13 +61,12 @@ sub get_instances {
 sub remove_stale_keys {
     my $keys = get_keys();
 
-    my @list = grep { $_->{'name'} =~ /${\KEY_NAME}/ } map { $keys->{$_} } keys %{$keys};
+    my @list = grep { $_->{'name'} =~ /${\KEY_NAME}/ } map { $instances->{$_} } keys %{$keys};
 
     foreach my $key (@list) {
-        if ( $keys->{$id}->{'created_on'} < $hammer_time ) {
+        if ( $instances->{$id}->{'created_on'} < $hammer_time ) {
             print "deleting: Key ID: $key->{'name'}, created_on: $key->{'created_on'}, hammer_time: $hammer_time\n";
-            eval { `openstack keypair delete $key->{'name'}` };
-            die $@ if $@;
+            system("openstack keypair delete $ID");
         }
     }
 }
@@ -80,8 +79,7 @@ sub remove_stale_instances {
     foreach my $vm (@list) {
         if ( $vm->{'created_on'} < $hammer_time ) {
             print "deleting: VM ID: $vm->{'name'}, created_on: $vm->{'created_on'}, hammer_time: $hammer_time\n";
-            eval { `openstack server delete vm->{'name'}` };
-            die $@ if $@;
+            system("openstack server delete $vm->{$id}");
         }
     }
 }
