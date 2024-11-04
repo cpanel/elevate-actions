@@ -17,6 +17,10 @@ use constant OS_APPLICATION_CREDENTIAL_SECRET => $ENV{OS_APPLICATION_CREDENTIAL_
 use constant VM_NAME  => "elevate.github.cpanel.net";
 use constant KEY_NAME => "deletethis";
 
+# Confs
+VM_NAME="elevate.github.cpanel.net"
+KEY_NAME="deletethis"
+
 # two hours ago
 my $time_cmd = qq/ date -d '-2 hour' --utc +"%Y-%m-%dT%H:%M:%SZ"/;
 
