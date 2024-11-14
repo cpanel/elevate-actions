@@ -1,7 +1,7 @@
 #!/usr/local/cpanel/3rdparty/bin/perl
 
 use constant ELEVATE_LOG_PATH => '/var/log/elevate-cpanel.log';
-use constant ELEVATE_PID      => '/var/run/elevate-cpanel.pid';
+use constant ELEVATE_PID_PATH => '/var/run/elevate-cpanel.pid';
 
 use File::Tail;
 use POSIX;
@@ -19,7 +19,7 @@ open( my $elevate_log_fh, '<', ELEVATE_LOG_PATH ) or die "## [ERROR][reboot_watc
 
 while ( my $line = readline $elevate_log_fh ) {
     if ( index( $line, $ENV{REBOOT_STRING} ) >= 0 ) {
-        close $elevate_log;
+        close $elevate_log_fh;
         _pre_success_message();
         _exit_with_haste_(0);
     }
@@ -35,14 +35,30 @@ while ( $RETVAL != 0 ) {
 sub _check_elevate_log_for_REBOOT_STRING {
     my ( $filepath, $REBOOT_STRING, $RETRIES ) = @_;
 
-    $file = File::Tail->new( name => $filepath, maxinterval => 1, adjustafter => 5, interval => 1 );
+    $file = File::Tail->new( name => $filepath, maxinterval => 0.1, adjustafter => 0.1, interval => 0.1, tail => -1 );
     while ( defined( $line = $file->read ) ) {
         _pid_check() unless $ENV{SKIP_PID_CHECK};
         if ( index( $line, $ENV{REBOOT_STRING} ) >= 0 ) {
             _success_message();
             _exit_with_haste(0);
         }
+
+        # The idea is that below here we can include conditionals of BAD phrases to exit 1 on so the pipelines don't hand longer than they need to.
+        if ( index( $line, "[FATAL]" ) >= 0 ) {
+            _fail_message();
+            _exit_with_haste(1);
+        }
+        if ( index( $line, "command failed. Fix it and run command" ) >= 0 ) {
+            _fail_message();
+            _exit_with_haste(1);
+        }
     }
+}
+
+sub _fail_message {
+    my $time = POSIX::strftime( "%Y-%m-%d %H:%M:%S", localtime );
+    print "## [$time] [INFO]: FAILURE: FATAL error encountered ( /FATAL/ ) found in /var/log/elevate-cpanel.log  ##\n";
+    _exit_with_haste(1);
 }
 
 sub _pre_success_message {
@@ -66,9 +82,22 @@ sub _exit_with_haste {
 }
 
 sub _pid_check {
-    ## Make sure the PID is in place before we continue parsing through.  This can prevent the timeout from being hit when we miss elevate has already died.
-    if ( !-s ELEVATE_PID ) {
-        print "## [ERROR]: NO PID for elevate-cpanel detected.  Exiting. ##\n";
+    if ( !-s ELEVATE_PID_PATH ) {
+        print "## [DEBUG]: PID file not found at " . ELEVATE_PID_PATH . "\n";
+        my $runout = `ls -la /var/run/`;
+        print "## [DEBUG]: contents of /var/run: $lsout\n";
+        open my $PID_FH, '<', ELEVATE_PID_PATH or die "Can't open file $!";
+        my $file_content = do { local $/; <$PID_FH> };
+        print "## [DEBUG]: PID exists: " . ELEVATE_PID_PATH . "\n";
+        print "## [DEBUG]: $file_content";
+        my $psout = `pstree | grep elevate-bcl`;
+        print "## [DEBUG]: $psout\n";
+        my $pidout = `pstree $file_content`;
+        print "## [DEBUG]: $pidout\n";
+        print "## [DEBUG]: Dumping last 2000 lines of /var/log/elevate-cpanel.log ...\n";
+        my $loglines = `tail -n 2000 /var/log/elevate-cpanel.log`;
+        print "## [DEBUG]: $loglines";
+        print "## [ERROR]: NO PID for elevate-cpanel detected. Exiting. ##\n";
         _exit_with_haste(1);
     }
     return 0;

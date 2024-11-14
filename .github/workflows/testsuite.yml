@@ -2,12 +2,11 @@ name: testsuite
 
 on:
   push:
-    branches:
-      - "*"
-      - '!docs'
     tags-ignore:
-      - "*"
+      - "*"       # Exclude all tags
   pull_request:
+    branches-ignore:
+      - "main"    # Exclude main for PRs as well
   workflow_dispatch:
   workflow_call:
 
