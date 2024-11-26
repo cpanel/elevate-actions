@@ -22,6 +22,7 @@ jobs:
       CPANEL_BIN_PATH: /usr/local/cpanel/3rdparty/bin
       CPANEL_PERL: /usr/local/cpanel/3rdparty/perl/536/bin/perl
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
 
     runs-on: ubuntu-latest
 
@@ -33,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
       - name: Setup PATH
         run: |
           echo $CPANEL_BIN_PATH >> $GITHUB_PATH;
