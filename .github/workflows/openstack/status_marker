@@ -1,12 +1,14 @@
-#!/usr/bin/env perl
+#!/usr/local/cpanel/3rdparty/bin/perl
 
-my $STAGE          = $ARGV[0];
-my $RELEASE_INFO   = `cat /etc/redhat-release`;
-my $CPANEL_VERSION = `cat /usr/local/cpanel/version`;
+use Cpanel::OS;
 
 use strict;
 
-print "######################################\n";
+my $STAGE          = $ARGV[0];
+my $RELEASE_INFO   = Cpanel::OS::display_name();
+my $CPANEL_VERSION = `cat /usr/local/cpanel/version`;
+
+print "###################################\n";
 
 sub main {
     my @arr = (
@@ -16,7 +18,7 @@ sub main {
 
     for my $row (@arr) {
         format STDOUT =
-@<<<<<<<<<<<<<<<<<  @<<<<<<<<<<<<<<<<<
+@<<<<<<<<<<  @<<<<<<<<<<<<<<<<<<<<<
          @$row
 .
         write;
@@ -26,4 +28,4 @@ sub main {
 
 main();
 
-print "######################################\n";
+print "###################################\n";
