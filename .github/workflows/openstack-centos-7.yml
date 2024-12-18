@@ -48,7 +48,13 @@ jobs:
         - name: Dump all GitHub variables
           run: |
             echo "Dumping all GitHub variables:"
-            echo "${{ toJson(github) }}"
+            echo "github.ref: ${{ github.ref }}"
+            echo "github.ref_name: ${{ github.ref_name }}"
+            echo "github.job: ${{ github.job }}"
+            echo "github.workflow: ${{ github.workflow }}"
+            echo "github.triggering_actor: ${{ github.triggering_actor }}"
+            echo "github.event_name: ${{ github.event_name }}"
+            echo "github.event.repository.master_branch: ${{ github.event.repository.master_branch }}"
 
         - name: Terraform fmt
           id: fmt
