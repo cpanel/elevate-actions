@@ -50,6 +50,10 @@ jobs:
       image: cpanelos/perl-compiler:alma8-perl-v5.36.0
 
     steps:
+      - name: Dump all GitHub variables
+        run: |
+          echo "Dumping all GitHub variables:"
+          echo "${{ toJson(github) }}"
 
       - name: Setup PATH
         run: |
