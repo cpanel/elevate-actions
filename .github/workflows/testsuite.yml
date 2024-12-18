@@ -50,6 +50,16 @@ jobs:
       image: cpanelos/perl-compiler:alma8-perl-v5.36.0
 
     steps:
+      - name: Dump all GitHub variables
+        run: |
+          echo "Dumping all GitHub variables:"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "github.job: ${{ github.job }}"
+          echo "github.workflow: ${{ github.workflow }}"
+          echo "github.triggering_actor: ${{ github.triggering_actor }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.event.repository.master_branch: ${{ github.event.repository.master_branch }}"
 
       - name: Setup PATH
         run: |
@@ -86,7 +96,8 @@ jobs:
       secrets: inherit
       if: >
         (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.repository == 'cpanel/elevate-cpanel' && github.triggering_actor == 'davelcpanelnet')
 
 
 # We are disabling CloudLinux for the time being as it's considered undependable at this point on the CLoudLinux side
@@ -105,5 +116,6 @@ jobs:
       secrets: inherit
       if: >
         (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.repository == 'cpanel/elevate-cpanel' && github.triggering_actor == 'davelcpanelnet')
 

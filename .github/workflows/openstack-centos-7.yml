@@ -44,6 +44,18 @@ jobs:
             working-directory: "${{ github.workspace }}/.github/workflows/openstack/centos-7"
         steps:
         - uses: actions/checkout@v4
+
+        - name: Dump all GitHub variables
+          run: |
+            echo "Dumping all GitHub variables:"
+            echo "github.ref: ${{ github.ref }}"
+            echo "github.ref_name: ${{ github.ref_name }}"
+            echo "github.job: ${{ github.job }}"
+            echo "github.workflow: ${{ github.workflow }}"
+            echo "github.triggering_actor: ${{ github.triggering_actor }}"
+            echo "github.event_name: ${{ github.event_name }}"
+            echo "github.event.repository.master_branch: ${{ github.event.repository.master_branch }}"
+
         - name: Terraform fmt
           id: fmt
           run: |
@@ -553,7 +565,7 @@ jobs:
               /scripts/status_marker 5
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep 2.5
-              SKIP_PID_CHECK=1 REBOOT_STRING="Doing final reboot" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Doing final reboot" RETVAL=1 /scripts/reboot_watch
 
     wait_for_final_reboot:
       runs-on: self-hosted
