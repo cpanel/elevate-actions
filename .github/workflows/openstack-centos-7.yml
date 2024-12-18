@@ -44,6 +44,12 @@ jobs:
             working-directory: "${{ github.workspace }}/.github/workflows/openstack/centos-7"
         steps:
         - uses: actions/checkout@v4
+
+        - name: Dump all GitHub variables
+          run: |
+            echo "Dumping all GitHub variables:"
+            echo "${{ toJson(github) }}"
+
         - name: Terraform fmt
           id: fmt
           run: |
@@ -296,7 +302,7 @@ jobs:
               /scripts/status_marker 1
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep .5
-              REBOOT_STRING="Rebooting into stage 2 of 5" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Rebooting into stage 2 of 5" RETVAL/scripts/reboot_watch
 
     wait_for_stage_2_reboot:
       runs-on: self-hosted
@@ -361,7 +367,7 @@ jobs:
               /scripts/status_marker 2
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep .5
-              REBOOT_STRING="Rebooting into stage 3 of 5" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Rebooting into stage 3 of 5" RETVAL/scripts/reboot_watch
     
     wait_for_stage_3_reboot:
       runs-on: self-hosted
@@ -425,7 +431,7 @@ jobs:
               /scripts/status_marker 3
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep .5
-              REBOOT_STRING="Rebooting into stage 4 of 5" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Rebooting into stage 4 of 5" RETVAL/scripts/reboot_watch
 
     wait_for_stage_4_reboot:
       runs-on: self-hosted
@@ -489,7 +495,7 @@ jobs:
               /scripts/status_marker 4
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep .5
-              REBOOT_STRING="Rebooting into stage 5 of 5" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Rebooting into stage 5 of 5" RETVAL/scripts/reboot_watch
 
     wait_for_stage_5_reboot:
       runs-on: self-hosted
@@ -553,7 +559,7 @@ jobs:
               /scripts/status_marker 5
               tail -n40 -F /var/log/elevate-cpanel.log &
               sleep 2.5
-              SKIP_PID_CHECK=1 REBOOT_STRING="Doing final reboot" RETVAL=1 /scripts/reboot_watch
+              REBOOT_STRING="Doing final reboot" RETVAL/scripts/reboot_watch
 
     wait_for_final_reboot:
       runs-on: self-hosted
